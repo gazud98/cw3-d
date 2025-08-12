@@ -1,0 +1,67 @@
+<div class="table-responsive rounded-4 shadow-sm border">
+    <table class="table table-hover align-middle mb-0 data-table">
+        <thead class="table-light border-bottom">
+            <tr class="align-middle fw-semibold text-secondary small">
+                <th><i class="bi bi-person"></i> Usuario</th>
+                <th><i class="bi bi-person-vcard"></i> Nombre</th>
+                <th><i class="bi bi-envelope"></i> Correo</th>
+                <th><i class="bi bi-phone"></i> Celular</th>
+                <th><i class="bi bi-diagram-3"></i> Área</th>
+                <th><i class="bi bi-person-badge"></i> Rol</th>
+                <th><i class="bi bi-check-circle"></i> Estado</th>
+                <th class="text-end"><i class="bi bi-gear"></i> Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr class="{% if usuario.es_admin %}protegido{% endif %}" data-id="{{ usuario.id }}">
+                <td class="editable-cell" {% if not usuario.es_admin %}onclick="editarUsuario('{{ usuario.id }}')" {%
+                    endif %}>{{ usuario.username }}</td>
+                <td class="editable-cell" {% if not usuario.es_admin %}onclick="editarUsuario('{{ usuario.id }}')" {%
+                    endif %}>{{ usuario.nombre_completo }}</td>
+                <td class="editable-cell" {% if not usuario.es_admin %}onclick="editarUsuario('{{ usuario.id }}')" {%
+                    endif %}>{{ usuario.correo }}</td>
+                <td class="editable-cell" {% if not usuario.es_admin %}onclick="editarUsuario('{{ usuario.id }}')" {%
+                    endif %}>{{ usuario.celular }}</td>
+                <td class="editable-cell" {% if not usuario.es_admin %}onclick="editarUsuario('{{ usuario.id }}')" {%
+                    endif %}>{{ usuario.area.nombre }}</td>
+
+                <td>
+                    <span
+                        class="badge px-3 py-1 fw-semibold {{ 'bg-primary-subtle text-primary' if usuario.es_admin else 'bg-secondary-subtle text-dark' }}">
+                        <i class="bi {{ 'bi-shield-lock' if usuario.es_admin else 'bi-person' }} me-1"></i>
+                        {{ 'Admin' if usuario.es_admin else 'Usuario' }}
+                    </span>
+                </td>
+                <td>
+                    <span
+                        class="badge px-3 py-1 fw-semibold {{ 'bg-success-subtle text-success' if usuario.activo else 'bg-danger-subtle text-danger' }}">
+                        {{ 'Activo' if usuario.activo else 'Inactivo' }}
+                    </span>
+                </td>
+                <td class="text-end">
+                    {% if not usuario.es_admin %}
+                    <button class="btn btn-sm btn-outline-primary rounded-circle" data-id="{{ usuario.id }}"
+                        title="Editar usuario" data-bs-toggle="tooltip" onclick="editarUsuario('{{ usuario.id }}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                        class="btn btn-sm {{ 'btn-outline-warning' if usuario.activo else 'btn-outline-success' }} rounded-circle ms-1"
+                        title="{{ 'Desactivar' if usuario.activo else 'Activar' }} usuario" data-bs-toggle="tooltip"
+                        onclick="confirmarToggleEstado('{{ usuario.id }}', '{{ usuario.activo }}')">
+                        <i class="bi {{ 'bi-person-dash' if usuario.activo else 'bi-person-check' }}"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-danger rounded-circle ms-1" title="Eliminar usuario"
+                        onclick="confirmarEliminacion('{{ usuario.id }}')" data-bs-toggle="tooltip">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% else %}
+                    <span class="text-muted fst-italic small">Cuenta protegida</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

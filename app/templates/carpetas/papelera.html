@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% set mostrar_navbar = True %}
+{% block title %}Papelera | SGC{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0 p-4" id="papeleraContainer">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-semibold mb-0">Papelera de Documentos</h2>
+        <a class="btn btn-outline-primary btn-sm rounded-pill" onclick="volverACarpetas()">
+            <i class="bi bi-arrow-left-circle"></i> Volver a Carpetas
+        </a>
+    </div>
+
+    {% if documentos %}
+    <div class="table-responsive rounded-4 shadow-sm border">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light border-bottom">
+                <tr class="align-middle fw-semibold text-secondary small">
+                    <th><i class="bi bi-file-earmark"></i> Nombre</th>
+                    <th><i class="bi bi-filetype-xlsx"></i> Tipo</th>
+                    <th><i class="bi bi-folder2-open"></i> Carpeta ID</th>
+                    <th><i class="bi bi-clock-history"></i> Eliminado</th>
+                    <th class="text-end"><i class="bi bi-gear"></i> Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documentos %}
+                <tr>
+                    <td>{{ doc.nombre }}</td>
+                    <td>{{ doc.tipo }}</td>
+                    <td>{{ doc.carpeta_id }}</td>
+                    <td>{{ doc.fecha_eliminado.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="text-end">
+                        <button id="btn-restaurar-{{ doc.id }}" class="btn btn-sm btn-outline-success rounded-pill"
+                            onclick="restaurarDocumento('{{ doc.id }}')">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted mt-3">No hay documentos en la papelera.</p>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/documentos.js') }}"></script>
+{% endblock %}

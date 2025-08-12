@@ -1,0 +1,51 @@
+<div class="table-responsive rounded-4 shadow-sm border">
+    <table class="table table-hover align-middle mb-0 data-table">
+        <thead class="table-light border-bottom">
+            <tr class="align-middle fw-semibold text-secondary small">
+                <th><i class="bi bi-diagram-3"></i> Nombre del Área</th>
+                <th><i class="bi bi-check-circle"></i> Estado</th>
+                <th class="text-end"><i class="bi bi-gear"></i> Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for area in areas %}
+            <tr class="fila-area cursor-pointer" data-id="{{ area.id }}">
+                <td class="editable-cell" onclick="editarArea('{{ area.id }}')">
+                    {{ area.nombre }}
+                </td>
+                <td>
+                    <span
+                        class="badge px-3 py-1 fw-semibold {{ 'bg-success-subtle text-success' if area.estado else 'bg-danger-subtle text-danger' }}">
+                        {{ 'Activo' if area.estado else 'Inactivo' }}
+                    </span>
+                </td>
+                <td class="text-end">
+                    <div class="d-flex justify-content-end align-items-center" style="gap: 0.5rem; flex-wrap: nowrap;">
+                        <!-- Botón Editar -->
+                        <button class="btn btn-sm btn-outline-primary rounded-circle"
+                            onclick="editarArea('{{ area.id }}')" title="Editar Área" data-bs-toggle="tooltip">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+
+                        <!-- Botón Activar/Desactivar -->
+                        <button
+                            class="btn btn-sm {{ 'btn-outline-warning' if area.estado else 'btn-outline-success' }} rounded-circle"
+                            title="{{ 'Desactivar' if area.estado else 'Activar' }} Área" data-bs-toggle="tooltip"
+                            onclick="confirmarToggleEstadoArea('{{ area.id }}', '{{ area.estado }}')">
+                            <i class="bi {{ 'bi-person-dash' if area.activo else 'bi-person-check' }}"></i>
+                        </button>
+
+                        <!-- Botón Eliminar -->
+                        <button class="btn btn-sm btn-outline-danger rounded-circle"
+                            onclick="confirmarEliminacionArea('{{ area.id }}')" title="Eliminar Área"
+                            data-bs-toggle="tooltip">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

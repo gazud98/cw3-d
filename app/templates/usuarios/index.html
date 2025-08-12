@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% set mostrar_navbar = True %}
+{% block title %}Usuarios | SGC{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0 p-4">
+    <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-2">
+        <div>
+            <h2 class="fw-semibold mb-1">Usuarios</h2>
+            <p class="text-muted mb-0">Administra los usuarios del sistema según su rol y área.</p>
+        </div>
+        <!-- Botón con solo ícono, tipo acción rápida -->
+        <button class="btn-fab" onclick="nuevoUsuario()" title="Nuevo Usuario" data-bs-toggle="tooltip">
+            <i class="bi bi-person-plus-fill"></i>
+        </button>
+
+
+    </div>
+
+    <!-- Tabla de usuarios (dinámica) -->
+    <div class="card border-light border-1 shadow-sm">
+        <div id="tablaUsuarios" class="table-responsive p-3">
+            {% include 'usuarios/lista.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para formulario de registro/edición -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalUsuarioLabel">Registrar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <br>
+            <div class="modal-body">
+                <form id="formUsuario" method="POST" novalidate>
+                    <input type="hidden" id="modoFormulario" name="modoFormulario" value="crear">
+                    <div class="row g-3 rounded-3 px-4 py-3  border">
+                        <div class="col-md-6">
+                            <label class="form-label">Usuario <span class="warning">*</span></label>
+                            <input type="text" class="form-control form-control-sm text-lowercase" name="username"
+                                required minlength="3">
+                            <div class="invalid-feedback">Ingrese un nombre de usuario válido (mínimo 3 caracteres).
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre Completo <span class="warning">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="nombre_completo"
+                                oninput="capitalizarPalabras(this)" required>
+                            <div class="invalid-feedback">Este campo es obligatorio.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo <span class="warning">*</span></label>
+                            <input type="email" class="form-control form-control-sm" name="correo" required>
+                            <div class="invalid-feedback">Ingrese un correo electrónico válido.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Celular</label>
+                            <input type="text" class="form-control form-control-sm" name="celular" pattern="\d{10}"
+                                title="Debe contener 10 dígitos">
+                            <div class="invalid-feedback">El celular debe tener 10 dígitos numéricos.</div>
+                        </div>
+                        <div class="col-md-6 campos-password d-flex flex-column">
+                            <label for="passwordInputUser" class="form-label">Contraseña <span
+                                    class="warning">*</span></label>
+                            <div class="input-group input-group-sm has-validation">
+                                <input type="password" class="form-control" name="password" id="passwordInputUser"
+                                    minlength="6" autocomplete="off" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePasswordUser"
+                                    title="Mostrar/ocultar contraseña">
+                                    <i class="bi bi-eye" id="passwordIconUser"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
+                        </div>
+                        <div class="col-md-6 campos-password d-flex flex-column">
+                            <label for="confirmInput" class="form-label">Confirmar Contraseña <span
+                                    class="warning">*</span></label>
+                            <div class="input-group input-group-sm has-validation">
+                                <input type="password" class="form-control" id="confirmInput" name="confirm" required
+                                    autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirm"
+                                    title="Mostrar/ocultar confirmación">
+                                    <i class="bi bi-eye" id="confirmIcon"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" style="display: none;">Las contraseñas no coinciden.</div>
+                        </div>
+
+
+                        <div class="col-md-6">
+                            <label class="form-label">Área <span class="warning">*</span></label>
+                            <select class="form-select form-select-sm" name="area_id" id="selectArea" required>
+                                {% for area in areas %}
+                                <option value="{{ area.id }}">{{ area.nombre }}</option>
+                                {% endfor %}
+                            </select>
+
+
+                            <div class="invalid-feedback">Seleccione un área válida.</div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" class="form-check-input" name="es_admin">
+                                <label class="form-check-label">Es administrador</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-end">
+                        <button type="submit" class="btn btn-success rounded-pill px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/usuarios.js') }}"></script>
+
+
+{% endblock %}

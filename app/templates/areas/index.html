@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Áreas | SGC{% endblock %}
+{% block content %}
+<div class="card shadow-sm border-0 p-4">
+  <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-2">
+    <div>
+      <h2 class="fw-semibold mb-1">Áreas</h2>
+      <p class="text-muted mb-0">Administra las áreas registradas en el sistema.</p>
+    </div>
+    <button class="btn-fab" onclick="nuevaArea()" title="Nueva area" data-bs-toggle="tooltip">
+      <i class="bi bi-plus-circle"></i>
+    </button>
+  </div>
+  <div class="card border-light border-1 shadow-sm">
+    <div id="tablaAreas" class="table-responsive p-3">
+      {% include 'areas/lista.html' %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal de registro/edición -->
+<div class="modal fade" id="modalArea" tabindex="-1" aria-labelledby="modalAreaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAreaLabel">Registrar Área</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formArea" method="POST" novalidate>
+          <input type="hidden" id="modoFormulario" value="crear">
+          <div class="mb-3">
+            <label class="form-label">Nombre del Área <span class="warning">*</span></label>
+            <input type="text" class="form-control" name="nombre" required minlength="3" id="nombre">
+            <div class="invalid-feedback">Ingrese un nombre válido para el área.</div>
+          </div>
+          <div class="text-end">
+            <button type="submit" class="btn btn-success rounded-pill px-4">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/areas.js') }}"></script>
+{% endblock %}

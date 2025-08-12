@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% set mostrar_navbar = True %}
+{% block title %}Documentos | SGC{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2 flex-wrap">
+        <h2 class="fw-semibold mb-0">Gestión de Documentos</h2>
+
+        {% if session['es_admin'] %}
+        <div class="d-flex gap-2 flex-wrap justify-content-end">
+            <button class="btn btn-sm btn-microsoft d-flex align-items-center gap-2 rounded-pill"
+                onclick="mostrarModalNuevaCarpeta()">
+                <i class="bi bi-folder-plus"></i> Nueva Carpeta
+            </button>
+
+            <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-2 rounded-pill"
+                onclick="mostrarModalSubirDocumento()">
+                <i class="bi bi-file-earmark-arrow-up"></i> Subir Documento
+            </button>
+
+            <a href="{{ url_for('documentos.vista_papelera') }}"
+                class="btn btn-sm btn-outline-danger d-flex align-items-center gap-2 rounded-pill">
+                <i class="bi bi-trash3"></i> Ver Papelera
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+
+    <!-- Ruta dinámica -->
+    <div id="breadcrumb" class="mb-3 small text-muted d-flex gap-1 align-items-center flex-wrap"></div>
+
+    <!-- Contenedor único de carpetas y documentos -->
+    <div class="row g-3" id="contenedorDocumentos"></div>
+</div>
+
+<!-- Modal para crear carpeta -->
+<div class="modal fade" id="modalNuevaCarpeta" tabindex="-1" aria-labelledby="modalNuevaCarpetaLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevaCarpetaLabel">Crear Nueva Carpeta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevaCarpeta">
+                    <div class="mb-3">
+                        <label for="nombreCarpeta" class="form-label">Nombre de la Carpeta</label>
+                        <input type="text" class="form-control" id="nombreCarpeta" name="nombre" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success rounded-pill">Crear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar carpeta -->
+<div class="modal fade" id="modalEditarCarpeta" tabindex="-1" aria-labelledby="modalEditarCarpetaLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarCarpetaLabel">Renombrar Carpeta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarCarpeta">
+                    <input type="hidden" id="editarCarpetaId">
+                    <div class="mb-3">
+                        <label for="editarNombreCarpeta" class="form-label">Nuevo nombre</label>
+                        <input type="text" class="form-control" id="editarNombreCarpeta" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success rounded-pill">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal para editar documento -->
+<div class="modal fade" id="modalEditarDocumento" tabindex="-1" aria-labelledby="modalEditarDocumentoLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarDocumentoLabel">Editar Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarDocumento" enctype="multipart/form-data">
+                    <input type="hidden" id="editarDocumentoId">
+
+                    <div class="mb-3">
+                        <label for="editarNombreDocumento" class="form-label">Nombre del documento</label>
+                        <input type="text" class="form-control" id="editarNombreDocumento" name="nombre" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editarArchivoDocumento" class="form-label">Reemplazar archivo (opcional)</label>
+                        <input type="file" class="form-control" id="editarArchivoDocumento" name="archivo"
+                            accept=".pdf,.xlsx,.xls">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editarCorreoDocumento" class="form-label">Correo destino (quien recibirá la copia
+                            editada)</label>
+                        <input type="email" class="form-control" id="editarCorreoDocumento" name="correo">
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success rounded-pill">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para subir documento -->
+<div class="modal fade" id="modalSubirDocumento" tabindex="-1" aria-labelledby="modalSubirDocumentoLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalSubirDocumentoLabel">Subir Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSubirDocumento" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="nombreDocumento" class="form-label">Nombre del documento</label>
+                        <input type="text" class="form-control" id="nombreDocumento" name="nombre" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="archivoDocumento" class="form-label">Archivo (.pdf, .xls, .xlsx)</label>
+                        <input type="file" class="form-control" id="archivoDocumento" name="archivo" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="correoDocumento" class="form-label">Correo destino (quien recibirá la copia
+                            editada)</label>
+                        <input type="email" class="form-control" id="correoDocumento" name="correo" required>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success rounded-pill">Subir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar Excel -->
+<div class="modal fade" id="modalOpcionesExcel" tabindex="-1" aria-labelledby="modalOpcionesExcelLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalOpcionesExcelLabel">Opciones del documento Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="fw-semibold" id="nombreArchivoExcel"></p>
+
+                <div class="d-grid gap-2">
+                    <a id="btnDescargarCopia" class="btn btn-outline-primary" download>
+                        <i class="bi bi-download"></i> Descargar copia para edición
+                    </a>
+
+                    <input type="file" id="archivoEditadoInput" accept=".xlsx,.xls" hidden>
+                    <button class="btn btn-outline-success" onclick="enviarCopiaRevision()">
+                        <i class="bi bi-upload"></i> Enviar copia para revisión
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    const esAdmin = "{{ 'true' if session.get('es_admin') else 'false' }}";
+</script>
+
+
+
+<script src="{{ url_for('static', filename='js/documentos.js') }}"></script>
+{% endblock %}

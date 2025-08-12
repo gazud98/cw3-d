@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Solicitudes de Revisión{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0 p-4">
+    <h2 class="fw-semibold mb-4">Solicitudes de Revisión</h2>
+
+    {% if solicitudes %}
+    <div class="table-responsive rounded-4 shadow-sm border">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr class="text-secondary small">
+                    <th>Documento</th>
+                    <th>Archivo</th>
+                    <th>Usuario</th>
+                    <th>Fecha de Envío</th>
+                    <th>Estado</th>
+                    <th>Comentario</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in solicitudes %}
+                <tr {% if item.estado==2 %} data-bs-toggle="tooltip"
+                    title="Aprobado por {{ item.revisor.nombre_completo }} el {{ item.fecha_revisado.strftime('%Y-%m-%d %H:%M') }}"
+                    {% elif item.estado==3 %} data-bs-toggle="tooltip"
+                    title="Rechazado por {{ item.revisor.nombre_completo }} el {{ item.fecha_revisado.strftime('%Y-%m-%d %H:%M') }}"
+                    {% else %} data-bs-toggle="tooltip" title="Pendiente de revisión" {% endif %}>
+                    <td>{{ item.documento.nombre }}</td>
+                    <td>{{ item.nombre_archivo }}</td>
+                    <td>{{ item.creador.nombre_completo }}</td>
+                    <td>{{ item.fecha_envio.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if item.estado == 1 %}
+                        <span class="badge bg-warning-subtle text-warning">Pendiente</span>
+                        {% elif item.estado == 2 %}
+                        <span class="badge bg-success-subtle text-success">Aprobado</span>
+                        {% elif item.estado == 3 %}
+                        <span class="badge bg-danger-subtle text-danger">Rechazado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.estado == 3 %}
+                        <button class="btn btn-sm btn-outline-danger rounded-circle" title="Ver comentario"
+                            data-comentario="{{ item.comentario | e }}"
+                            data-revisor="{{ item.revisor.nombre_completo | e }}"
+                            data-fecha="{{ item.fecha_revisado.strftime('%Y-%m-%d %H:%M') }}"
+                            onclick="verComentario(this)" data-bs-toggle="modal" data-bs-target="#modalComentario">
+                            <i class="bi bi-chat-left-text"></i>
+                        </button>
+
+                        {% else %}
+                        <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary rounded-circle"
+                            href="{{ url_for('static', filename=item.ruta_archivo) }}" title="Ver Copia"
+                            data-bs-toggle="tooltip" target="_blank">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if item.estado == 1 %}
+                        <button class="btn btn-sm btn-outline-success rounded-circle ms-1"
+                            onclick="abrirModalRevision('{{ item.id }}')" title="Revisar Solicitud"
+                            data-bs-toggle="tooltip">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No hay solicitudes aún.</p>
+    {% endif %}
+</div>
+
+<!-- Modal Revisión -->
+<div class="modal fade" id="modalRevisarSolicitud" tabindex="-1" aria-labelledby="modalRevisarSolicitudLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalRevisarSolicitudLabel">Revisar Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formRevisarSolicitud" enctype="multipart/form-data">
+                    <input type="hidden" id="solicitudId" name="solicitud_id">
+                    <div class="mb-3">
+                        <label class="form-label">Archivo firmado (PDF, XLSX)</label>
+                        <input type="file" class="form-control" name="archivo_firmado" accept=".pdf,.xls,.xlsx"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comentario (opcional si aprueba, obligatorio si rechaza)</label>
+                        <textarea class="form-control" name="comentario" id="comentarioRevision" rows="3"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-danger" onclick="rechazarSolicitud()">Rechazar</button>
+                        <button type="submit" class="btn btn-success">Aprobar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Comentario -->
+<div class="modal fade" id="modalComentario" tabindex="-1" aria-labelledby="modalComentarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalComentarioLabel">Comentario de Rechazo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><strong>Revisor:</strong> <span id="revisorComentario"></span></p>
+                <p class="mb-2"><strong>Fecha:</strong> <span id="fechaComentario"></span></p>
+                <p class="mb-0"><strong>Comentario:</strong></p>
+                <div class="bg-light border rounded p-2 mt-1" id="textoComentario" style="white-space: pre-wrap;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function abrirModalRevision(id) {
+        document.getElementById('solicitudId').value = id;
+        document.getElementById('formRevisarSolicitud').reset();
+        new bootstrap.Modal(document.getElementById('modalRevisarSolicitud')).show();
+    }
+
+    function rechazarSolicitud() {
+        const id = document.getElementById('solicitudId').value;
+        const comentario = document.getElementById('comentarioRevision').value.trim();
+
+        if (!comentario) {
+            Swal.fire("Error", "Debe ingresar un comentario para rechazar.", "warning");
+            return;
+        }
+
+        fetch(`/solicitudes/rechazar/${id}`, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comentario })
+        }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire("Rechazado", "La solicitud ha sido rechazada.", "info").then(() => location.reload());
+                } else {
+                    Swal.fire("Error", "No se pudo rechazar.", "error");
+                }
+            });
+    }
+
+    document.getElementById("formRevisarSolicitud").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+        const id = formData.get("solicitud_id");
+
+        fetch(`/solicitudes/aprobar/${id}`, {
+            method: "POST",
+            body: formData
+        }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire("Aprobado", "La solicitud ha sido aprobada.", "success").then(() => location.reload());
+                } else {
+                    Swal.fire("Error", data.error || "No se pudo aprobar.", "error");
+                }
+            });
+    });
+
+    function verComentario(btn) {
+        const comentario = btn.getAttribute('data-comentario');
+        const revisor = btn.getAttribute('data-revisor');
+        const fecha = btn.getAttribute('data-fecha');
+
+        document.getElementById('textoComentario').innerText = comentario || 'Sin comentario.';
+        document.getElementById('revisorComentario').innerText = revisor;
+        document.getElementById('fechaComentario').innerText = fecha;
+    }
+
+</script>
+{% endblock %}
